@@ -46,7 +46,8 @@ test:
     - cd gh_src
     # "test_carto_dw_client" requires google.cloud.bigquery
     # which is an extra requirement
-    - pytest tests -k "not test_carto_dw_client"
+    # on windows, tests fail due to path style difference (/ vs \\)
+    - pytest tests -k "not test_carto_dw_client"  # [not win]
 
 about:
   home: https://github.com/cartodb/carto-auth
