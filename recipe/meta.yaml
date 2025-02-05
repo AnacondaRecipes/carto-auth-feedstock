@@ -1,31 +1,55 @@
 {% set name = "carto-auth" %}
-{% set version = "0.1.0" %}
+{% set version = "0.2.0" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: e1a90c0f032c30e0b4af19f0f9b8e382460e920a4d93c92cfa5a30bfe28c93a4
+  - url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+    sha256: 982d293d723e92dc334734a7be43a113dd7c8ce8c5d97b49d86c2ad81d1c63a5
+  # pypi tarball doesn't include tests
+  - git_url: https://github.com/CartoDB/carto-auth.git
+    git_rev: v{{ version }}
+    folder: gh_src
 
 build:
   number: 0
-  script: {{ PYTHON }} -m pip install . -vv
-  noarch: python
+  skip: True  # [py<37]
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
 
 requirements:
+  build:
+    - git  # [not win]
   host:
-    - python >=3.7
+    - python
     - pip
+    - setuptools
+    - wheel
   run:
-    - python >=3.7
+    - python
     - requests
     - pyyaml
+  run_constrained:
+    - google-cloud-bigquery >=2.34.4
 
 test:
   imports:
     - carto_auth
+  requires:
+    - pip
+    - pytest
+    - pytest-mock
+    - requests-mock
+    - google-cloud-bigquery  # [py<313]
+  source_files:
+    - gh_src/tests
+  commands:
+    - pip check
+    - cd gh_src
+    # on windows, tests fail due to path style difference (/ vs \\)
+    - pytest tests  # [not win and py<313]
+    - pytest tests -k "not test_carto_dw_client"  # [not win and py>=313]
 
 about:
   home: https://github.com/cartodb/carto-auth
@@ -35,6 +59,7 @@ about:
   license_file: LICENSE
   doc_url: https://github.com/CartoDB/carto-auth/tree/master/docs
   dev_url: https://github.com/cartodb/carto-auth
+  description: Python library to authenticate with CARTO
 
 extra:
   recipe-maintainers:
