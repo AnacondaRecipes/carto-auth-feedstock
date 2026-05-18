@@ -1,4 +1,5 @@
 anaconda_config_version: 1
 upstream_sources:
-  - pypi:
-      identifier: carto-auth
+  - git:
+      identifier: https://github.com/CartoDB/carto-auth.git
+      prefix: v
